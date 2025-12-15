@@ -1,25 +1,44 @@
-import { create } from "zustand";
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { nanoid } from 'nanoid'
 
-export const useTaskStore = create((set) => ({
-  tasks: [],
+export const useTaskStore = create(
+  persist(
+    (set) => ({
+      tasks: [],
 
-  addTask: (task) =>
-    set((state) => ({
-      tasks: [
-        ...state.tasks,
-        { id: crypto.randomUUID(), completed: false, ...task },
-      ],
-    })),
+      addTask: (taskData) =>
+        set((state) => ({
+          tasks: [
+            ...state.tasks,
+            {
+              id: nanoid(),
+              ...taskData,
+            },
+          ],
+        })),
 
-  toggleTask: (id) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      ),
-    })),
+      updateTask: (id, updatedData) =>
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id ? { ...task, ...updatedData } : task
+          ),
+        })),
 
-  deleteTask: (id) =>
-    set((state) => ({
-      tasks: state.tasks.filter((t) => t.id !== id),
-    })),
-}));
+      deleteTask: (id) =>
+        set((state) => ({
+          tasks: state.tasks.filter((task) => task.id !== id),
+        })),
+
+      toggleComplete: (id) =>
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id ? { ...task, completed: !task.completed } : task
+          ),
+        })),
+    }),
+    {
+      name: 'collabboard-tasks',
+    }
+  )
+)
