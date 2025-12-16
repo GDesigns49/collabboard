@@ -10,27 +10,27 @@ function TaskForm({ editingTask, onClose }) {
 
   useEffect(() => {
     if (editingTask) {
-      setTitle(editingTask.title || '')
-      setDescription(editingTask.description || '')
-      setPriority(editingTask.priority || 'Low')
+      setTitle(editingTask.title)
+      setDescription(editingTask.description)
+      setPriority(editingTask.priority)
     }
   }, [editingTask])
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    const taskData = {
-      title,
-      description,
-      priority,
-      createdAt: new Date().toISOString(),
-      completed: false,
-    }
-
     if (editingTask) {
-      updateTask(editingTask.id, taskData)
+      updateTask(editingTask.id, {
+        title,
+        description,
+        priority
+      })
     } else {
-      addTask(taskData)
+      addTask({
+        title,
+        description,
+        priority
+      })
     }
 
     onClose()

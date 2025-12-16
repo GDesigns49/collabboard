@@ -3,12 +3,12 @@ import { useTaskStore } from '../store/useTaskStore'
 import TaskForm from '../components/tasks/TaskForm'
 import ThemeToggle from '../components/ThemeToggle'
 
-
 function Dashboard() {
-  const { tasks, deleteTask, toggleComplete } = useTaskStore()
+  const { tasks, deleteTask, toggleComplete, clearTasks } = useTaskStore()
 
   const [showForm, setShowForm] = useState(false)
-  const [selectedTask, setSelectedTask] = useState(null)
+  const [editingTask, setEditingTask] = useState(null)
+  const [taskToDelete, setTaskToDelete] = useState(null)
 
   const [search, setSearch] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('All')
@@ -29,22 +29,17 @@ function Dashboard() {
       }
     })
 
-  const handleEdit = (task) => {
-    setSelectedTask(task)
-    setShowForm(true)
-  }
-
   return (
     <div className="min-h-screen flex flex-col md:flex-row p-6 gap-6">
+
       <div className="w-full md:w-1/3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-          CollabBoard
-        </h1>
+        <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">CollabBoard</h1>
+
         <ThemeToggle />
 
         <button
           onClick={() => {
-            setSelectedTask(null)
+            setEditingTask(null)
             setShowForm(true)
           }}
           className="w-full mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -90,12 +85,8 @@ function Dashboard() {
                 className="p-3 mb-3 bg-gray-100 dark:bg-gray-700 rounded shadow flex justify-between items-center"
               >
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                    {task.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {task.priority} Priority
-                  </p>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">{task.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{task.priority} Priority</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -107,14 +98,17 @@ function Dashboard() {
                   </button>
 
                   <button
-                    onClick={() => handleEdit(task)}
+                    onClick={() => {
+                      setEditingTask(task)
+                      setShowForm(true)
+                    }}
                     className="px-2 py-1 bg-yellow-500 text-white rounded text-sm"
                   >
                     Edit
                   </button>
 
                   <button
-                    onClick={() => deleteTask(task.id)}
+                    onClick={() => setTaskToDelete(task)}
                     className="px-2 py-1 bg-red-600 text-white rounded text-sm"
                   >
                     Delete
@@ -126,24 +120,81 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="w-full md:w-2/3 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-          Task Details / Workspace
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Select a task or create a new one to get started.
-        </p>
+      <div className="w-full md:w-2/3 bg-white dark:bg-gray-800 p-6 rounded-lg shadow overflow-y-auto">
+
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">All Tasks</h2>
+
+          <button
+            onClick={clearTasks}
+            className="px-3 py-1 bg-gray-300 dark:bg-gray-700 dark:text-white rounded"
+          >
+            Clear
+          </button>
+        </div>
+
+        {tasks.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-300">No tasks added yet.</p>
+        ) : (
+          tasks.map((task) => (
+            <div
+              key={task.id}
+              className="p-4 mb-4 bg-gray-100 dark:bg-gray-700 rounded shadow"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {task.title}
+              </h3>
+
+              <p className="text-gray-700 dark:text-gray-300">{task.description}</p>
+
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Priority: {task.priority} | Status: {task.completed ? 'Completed' : 'Pending'}
+              </p>
+            </div>
+          ))
+        )}
       </div>
 
       {showForm && (
         <TaskForm
-          editingTask={selectedTask}
+          editingTask={editingTask}
           onClose={() => {
             setShowForm(false)
-            setSelectedTask(null)
+            setEditingTask(null)
           }}
         />
       )}
+
+      {taskToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-80">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Confirm Delete</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
+              Delete "{taskToDelete.title}"?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  deleteTask(taskToDelete.id)
+                  setTaskToDelete(null)
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+              >
+                Yes
+              </button>
+
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-700 dark:text-white rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -1,19 +1,22 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { nanoid } from 'nanoid'
 
 export const useTaskStore = create(
   persist(
     (set) => ({
       tasks: [],
 
-      addTask: (taskData) =>
+      addTask: (task) =>
         set((state) => ({
           tasks: [
             ...state.tasks,
             {
-              id: nanoid(),
-              ...taskData,
+              id: Date.now(),
+              title: task.title,
+              description: task.description,
+              priority: task.priority,
+              completed: false,
+              createdAt: new Date().toISOString(),
             },
           ],
         })),
@@ -36,9 +39,9 @@ export const useTaskStore = create(
             task.id === id ? { ...task, completed: !task.completed } : task
           ),
         })),
+
+      clearTasks: () => set({ tasks: [] }),
     }),
-    {
-      name: 'collabboard-tasks',
-    }
+    { name: 'collabboard-tasks' }
   )
 )
